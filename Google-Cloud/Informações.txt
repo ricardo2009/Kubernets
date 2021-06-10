@@ -1,0 +1,22 @@
+
+
+Permissões:
+
+    - ReadWriteMany #'Permissão para multiplos pods possam ler e escrever o conteudo ao mesmo tempo'
+    - ReadWriteOnce #'Permissão para apenas um pod realizar a operação de leitura e escrita por vez'
+    - ReadOnyMany   #'Permissão para multiplos pods apenas ler o conteudo do volume'
+
+
+Anotações:
+
+[PERSISTENT VOLUME]
+
+1   - É necessario criar um disco 
+2   - Após a criação do disco é necessario criar um 'pv'(persistent Volume).
+        Resource independente do Pod responsavél por abstrair como o cloud provider armazena os dados
+3   - Em seguida é necessario criar o 'pvc' (persistent Volume Claim).
+        Serve como passaporte para o Pod acessar o PV.
+4   - Por fim, criamos um pod para acessar o PV através do PVC.
+
+[PERSISTENT STORAGE]
+

@@ -1,0 +1,119 @@
+
+[REMOÇÃO DE PODS]
+
+- Se o pod foi criado de uma maneira interativa, a unica maneira de exclui-lo é através do comando (kubectl delete pod nginx-pod) 'coloquei o nginx-pod como exemplo'
+- Para eliminar um pod que foi criado de maneira declarativa, podemos utilizar o seguinte comando:
+    (kubectl delete -f .\primeiro-pod.yaml) . é uma maneira bem simples com cenario extremamente rudimentar. 
+
+[REPLICASET]
+
+ kubectl get replicasets (para ver quais parametros estão sendo utilizados em relação ao numero de pods desejados e o numero de pods atual/prontos)
+ kubectl get rs --watch (para ter uma visão continua do comportamento do replicasets)
+  
+[Deployments]
+
+É uma camada acima do replicaset, essa camada de Deployments faz o controle de versões do codigo da aplicação, ou seja
+com a adição da camada de Deployments, agora temos mais opções de comandos para visualização da saude da app
+
+
+- kubectl get Deployments (para ver quais Deployments estão sendo utilizados e suas informações)
+
+- kubectl rollout history deployments (nome da aplicação como por exemplo "nginx-deployment") 
+    - O comando acima informar o numero de revisão e a causa de cada uma das revisões, lembrando que por padrão o kubernetes apenas grava como saida o comando de efetivação da mudança ou seja ele irá gravar o comando "kubectl apply -f *nome do arquivo.
+
+
+- kubectl apply -f .\ nginx-deployment.yaml --record 
+(Esse comando realiza uma analise no arquivo declaro e efetua a alteração na aplicação conforme solicitado, para personalizar
+a descrição da revisão é necessario utilizar o comando annotate que será demonstrado logo abaixo)
+
+
+Após essa alteração, se executarmos o comando 'rollout' ira aparecer uma nova alinha informando a alteração, porém ainda em um formato não
+muito claro.Para refinar esse informação é necessario realizar os seguintes passos:
+
+kubectl annotate deployment (nome do deployment)
+                                nginx-deployment 
+                                    (declaração sobre qual será a mudança a ser feita)
+                                        kubernetes.io/change-cause="Definindo a imagem com a versão latest"
+
+O comando completo:
+
+ kubectl annotate deployment nginx-deployment kubernetes.io/change-cause="Definindo a imagem com a versão latest"
+
+* Obs. Esse comando sempre aborda a ultima revisão feita!
+
+Visando um cenario onde é necessario retorna a aplicação para uma versão anterior, ou seja antes de ser alterada.
+É necessario realizar o comando abaixo:
+
+kubectl rollout undo deployment (informar qual deployment está aplicado o rollout)
+                                    nginx-deployment
+                                        (Para indicar qual versão é a desejada) --to-revision=2
+
+O comando completo:
+
+kubectl rollout undo deployment nginx-deployment --to-revision=2
+
+
+Para validar é possivél ver através do comando (kubectl describe pod "nome do pod" por exemplo "nginx-deployment-6cgfwfewg2wr")
+ No campos de eventos será demonstrado que a imagen aplicada nos container é a versão "latest".
+
+Em resumo :
+
+É possivél manter pods em execução com ReplicaSets e Deployments através de arquivos declarativos
+É possivél fazer o controle de versionamento de Deployments com o kubectl
+É possivél utilizar os comandos kubectl rollout para ver e alterar as versões de Deployments.
+Ressaltamos que ReplicaSets são criados automaticamente dentro de um Deployment
+E Que Pods normalmente são criados através de Deployments, e não individualmente.
+
+[VOLUME]
+
+Para ter a retenção de dados é necessario realizar a criação de um ou mais volume. 
+
+Após a criação do yaml , se o mesmo estiver sendo executado em um servidor ou computador windows, é necessario realizar alguns procedimento no cliente do docket instalado
+ - retira a opção ()
+ - Informar ao cliente do docker a pasta do host que será utilizado pelo volume, conforme o caminho descrito no yaml.
+ Após essas etapas, é necessario criar o volume através do comando (kubectl apply -f .\pod-volume.yaml) lembrando que no comando o caminho do yaml está deslumbrando o caminho atual do meu projeto.
+  
+"Entra no modo interativo do container descrito"
+kubectl exec -it pod-volume --container nginx-container --bash 
+
+
+-- Em um ambiente linux tem a opção de criação da pasta do volume ser criada no processo de criação do pod, para isso é necessario adicionar a seguinte ordem no yam:
+
+DirectyOrCreate
+
+No yaml do pod 'volume' é possivél adicionar a ordem de criação do diretorio juntamente com as configurações do mesmo , juntamente com as configurações do hostPath.
+
+Sobre Volumes:
+
+Volumes persistem dados de containers dentro de pods e permitem o compartilhamento de arquivo dentro dos pods
+Que Volumes possuem ciclo de vida independente dos containers, porém, vinculados aos pods
+Como criar PersistentVolumes através de arquivos de definição
+
+e sobre volumes persistentes:
+
+PersistentVolumes persistem dados de pods como um todo
+PersistentVolumes possuem ciclo de vida independente de quaisquer outros recursos, inclusive pods
+Que precisamos de um PersistentVolumeClaim para acessar um PersistentVolume no google cloud.
+
+
+[STATEFULSets]
+
+STATEFULSets podem ser usado quando estado devem ser persistidos. para isso ele usa o PersistentVolume e PersistentVolumeClaim para a persistencia de dados.
+
+
+-- Ordem de criação
+
+1 - Criar o pvc (imagens.pvc.yaml)
+2 - Criar o pvc da sessão (sessao-pvc.yml)
+obs. ao criar os dois, automaticamente será criado 2 pv . Isso porque o cluster também possui um storage class 
+padrão, então se houver a criação de um PersistentVolumeClaim sem a definição do volume que iremos utilizar
+o cluster ira utilizar o storage class para criar dinamicamente o nosso persistentVolume.
+3 - Realizar a aplicação do STATEFULSets (kubectl apply -f .\sistema-noticias-statefulset.yml)
+
+
+Resumo:
+
+É possivél criar PersistentVolumes dinamicamente com StorageClasses
+StorageClasses também são capazes de criar discos de armazenamento
+Como utilizar StatefulSets para garantir unicidade de Pods durante reinícios e atualizações
+Clusters possuem StorageClasses "default" e podem ser usados automaticamente se não definirmos qual será utilizado

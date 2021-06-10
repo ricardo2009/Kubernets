@@ -1,0 +1,23 @@
+apiVersion: aaps/v1
+kind: Deployment
+metadata:
+  name: sistema-noticias-deployment
+spec:
+  replicas: 1
+  template:
+    metadata:
+      name: sistemas-noticias
+      labels:
+        app: sistema-noticias
+    spec:
+      container:
+        - name: sistema-noticias-container
+          image: aluracursos/sistema-noticias:1
+          ports:
+            - containerPort: 80
+          envFrom:
+            - configMapRef:
+                name: sistema-configmap
+  selector:
+    matchLabels:
+      app: sistema-noticias

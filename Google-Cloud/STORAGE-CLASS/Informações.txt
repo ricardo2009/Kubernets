@@ -1,0 +1,13 @@
+
+[TIPO DE DISCOS]
+
+type: pd-standard ou pd-ssd. o padrão sempre será pd-standard.
+
+
+[Comandos]
+
+kubectl get sc 
+    sc (STORAGE class)
+
+kubectl get pv
+    pv (persistent volume)
